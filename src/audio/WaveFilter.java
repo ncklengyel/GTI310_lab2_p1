@@ -20,12 +20,24 @@ public class WaveFilter implements AudioFilter {
 	private int sampleRate; // offset 24
 	private int byteRate; // offset 28
 	private int bitsPerSample; // offset 34
+	
+	private FileImageInputStream fileInputStream;
 
 	public WaveFilter(File aWaveFile) {
 
 		waveFile = aWaveFile;
-
-		buildHeader(waveFile);
+		
+		try {
+			fileInputStream = new FileImageInputStream(waveFile);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		buildHeader();		
 
 		if (bitsPerSample != 16) {
 			System.out.println("le fichier audio n'a pas 16bits par echantillon");
@@ -40,11 +52,8 @@ public class WaveFilter implements AudioFilter {
 	}
 
 	// methode qui build le header d'un fichier wave
-	private void buildHeader(File aWaveFile) {
-
-		try {
-			FileImageInputStream f = new FileImageInputStream(aWaveFile);
-
+	private void buildHeader() {
+		
 			int content = 0;
 			int count = 0;
 
@@ -52,7 +61,12 @@ public class WaveFilter implements AudioFilter {
 			while (count <= DATA_OFFSET) {
 
 				// System.out.println(count);
-				content = f.read();
+				try {
+					content = fileInputStream.read();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
 				if (count == NUMOFCHANNELS_OFFSET) {
 					numOfChannels = content;
@@ -73,14 +87,7 @@ public class WaveFilter implements AudioFilter {
 				count++;
 
 			}
-
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+				
 
 	}
 
