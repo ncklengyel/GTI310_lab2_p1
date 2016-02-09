@@ -18,6 +18,12 @@ public class Application {
 	 */
 	public static void main(String args[]) {
 
+		if (args.length!=2) {
+			System.out.println("Le programme besoin de 2 arguments\nUn fichier en entrée et d'un fichier de sorti");
+		}
+		
+		/*
+		
 		final String MAC = "Mac OS X";
 		JFileChooser fileChooser = null;
 
@@ -53,6 +59,8 @@ public class Application {
 			WaveFilter wave = new WaveFilter(file);
 			wave.printHeader();
 		}
+		
+		*/
 
 	}
 }
