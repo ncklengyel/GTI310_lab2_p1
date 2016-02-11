@@ -1,10 +1,14 @@
 package audio;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.imageio.stream.FileImageInputStream;
+
+import io.FileSink;
+import io.FileSource;
 
 public class WaveFilter implements AudioFilter {
 	// Constantes
@@ -21,21 +25,38 @@ public class WaveFilter implements AudioFilter {
 	private int byteRate; // offset 28
 	private int bitsPerSample; // offset 34
 	
-	private FileImageInputStream fileInputStream;
-
+	private FileInputStream fileInputStream;
+	
+	private byte[] byteArray = new byte[1];
+	
+	private FileSink fileSink;
+	
+	private FileSource fileSource;
+	
+	/*
+	 * Constructeur
+	 */
 	public WaveFilter(File aWaveFile) {
 
 		waveFile = aWaveFile;
 		
 		try {
-			fileInputStream = new FileImageInputStream(waveFile);
+			fileSource = new FileSource(waveFile.getAbsolutePath());
+			fileSink = new FileSink("/Users/am37580/test.wav");
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		
+
+		try {
+			fileInputStream = new FileInputStream(waveFile);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		
 		
 		buildHeader();		
 
@@ -47,7 +68,43 @@ public class WaveFilter implements AudioFilter {
 
 	@Override
 	public void process() {
-		// TODO Auto-generated method stub
+		
+		short content = 0;
+		int count = 0;
+		
+		try {
+			
+			while (fileInputStream.read() != -1) {
+				
+				
+				
+				if(count>44){
+				
+					content = fileInputStream.readShort();
+				
+					byteArray[0] = (byte) content;
+				
+					//System.out.println(byteArray[0]);
+					fileSink.push(byteArray);
+				
+				}else{
+					
+					byteArray[0] = (byte) fileInputStream.read();
+					fileSink.push(byteArray);
+					
+				}
+				
+				count++;
+				
+			}
+			
+			fileSink.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 
 	}
 
@@ -91,6 +148,9 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
+	/*
+	 * Accesseurs et mutateurs
+	 */
 	public int getBitsPerSample() {
 		return bitsPerSample;
 	}
@@ -99,6 +159,9 @@ public class WaveFilter implements AudioFilter {
 		this.bitsPerSample = bitsPerSample;
 	}
 
+	/*
+	 * Méthode permettant d'afficher le header du fichier passé en paramètre
+	 */
 	public void printHeader() {
 
 		System.out.println("---Header of " + waveFile.getName() + "---");

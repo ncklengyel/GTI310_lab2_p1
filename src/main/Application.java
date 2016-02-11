@@ -6,6 +6,7 @@ import java.io.FileFilter;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import audio.AudioFilter;
 import audio.WaveFilter;
 
 public class Application {
@@ -20,7 +21,14 @@ public class Application {
 
 		if (args.length!=2) {
 			System.out.println("Le programme besoin de 2 arguments\nUn fichier en entrée et d'un fichier de sorti");
+			System.exit(0);
 		}
+		
+		File waveFile = new File(args[0]);
+		
+		WaveFilter waveFilter = new WaveFilter(waveFile);
+		waveFilter.printHeader();
+		waveFilter.process();
 		
 		/*
 		
