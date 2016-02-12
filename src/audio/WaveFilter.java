@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.imageio.stream.FileImageInputStream;
-
 import io.FileSink;
 import io.FileSource;
 
@@ -25,12 +23,11 @@ public class WaveFilter implements AudioFilter {
 	private int byteRate; // offset 28
 	private int bitsPerSample; // offset 34
 	
-	private FileInputStream fileInputStream;
 	
 	private byte[] byteArray = new byte[1];
 	
+	private FileInputStream fileInputStream;
 	private FileSink fileSink;
-	
 	private FileSource fileSource;
 	
 	/*
@@ -38,11 +35,14 @@ public class WaveFilter implements AudioFilter {
 	 */
 	public WaveFilter(File aWaveFile) {
 
+		bitsPerSample = 8;
+		
+		
 		waveFile = aWaveFile;
 		
 		try {
 			fileSource = new FileSource(waveFile.getAbsolutePath());
-			fileSink = new FileSink("/Users/am37580/test.wav");
+			fileSink = new FileSink("/home/nick/test.wav");
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -56,46 +56,31 @@ public class WaveFilter implements AudioFilter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		buildHeader();		
-
-		if (bitsPerSample != 16) {
-			System.out.println("le fichier audio n'a pas 16bits par echantillon");
-		}
 
 	}
 
 	@Override
 	public void process() {
 		
-		short content = 0;
-		int count = 0;
+		buildHeader();
 		
 		try {
-			
-			while (fileInputStream.read() != -1) {
+			int max = fileInputStream.available();
+			byte[] array = fileSource.pop(max-DATA_OFFSET);
+			fileSink.push(array);		
+			fileSink.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		/*
+		int content;
+		byte[] byteArray = new byte[1];
+		try {
+			while ((content = fileInputStream.read()) != -1) {
 				
-				
-				
-				if(count>44){
-				
-					content = fileInputStream.readShort();
-				
-					byteArray[0] = (byte) content;
-				
-					//System.out.println(byteArray[0]);
-					fileSink.push(byteArray);
-				
-				}else{
-					
-					byteArray[0] = (byte) fileInputStream.read();
-					fileSink.push(byteArray);
-					
-				}
-				
-				count++;
-				
+				byteArray[0] = (byte) content;
+				fileSink.push(byteArray);
 			}
 			
 			fileSink.close();
@@ -104,16 +89,39 @@ public class WaveFilter implements AudioFilter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		*/
 
 	}
 
 	// methode qui build le header d'un fichier wave
 	private void buildHeader() {
 		
+		byte[] byteRate = new byte [1];
+		byteRate[0] = 8;
+		
+		byte[] byteArray = null;
+		//
+		byteArray = fileSource.pop(28);
+		
+		fileSink.push(byteArray);
+		
+		fileSource.pop(1);
+		fileSink.push(byteRate);
+		
+		byteArray = fileSource.pop(12);
+		fileSink.push(byteArray);
+		
+		/*
+		for (int i = 0; i < byteArray.length; i++) {
+			System.out.println(i+1+"---"+byteArray[i]);
+		}
+		*/
+		
+		/*
 			int content = 0;
 			int count = 0;
 
+			
 			// while ((content = f.read()) != -1) {
 			while (count <= DATA_OFFSET) {
 
@@ -144,7 +152,7 @@ public class WaveFilter implements AudioFilter {
 				count++;
 
 			}
-				
+		*/		
 
 	}
 

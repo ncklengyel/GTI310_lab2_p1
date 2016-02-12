@@ -62,4 +62,16 @@ public class FileSink {
 			/* something went wrong */
 		}
 	}
+	
+	public void pushBytes(String aString){
+		
+		try {
+			_writer.writeBytes(aString);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 }
