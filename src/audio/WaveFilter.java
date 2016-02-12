@@ -65,31 +65,32 @@ public class WaveFilter implements AudioFilter {
 		buildHeader();
 		
 		try {
-			int max = fileInputStream.available();
-			byte[] array = fileSource.pop(max-DATA_OFFSET);
-			fileSink.push(array);		
-			fileSink.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		/*
-		int content;
-		byte[] byteArray = new byte[1];
-		try {
-			while ((content = fileInputStream.read()) != -1) {
+			
+			int nombreDeBytes = fileInputStream.available()-DATA_OFFSET;
+			
+			int nombreShort = nombreDeBytes/2;
+			
+			int multiple = trouverMultiple(nombreShort);
+			
+			int length = nombreShort/multiple;
+			
+			for (int i = 0; i < length; i++) {
 				
-				byteArray[0] = (byte) content;
-				fileSink.push(byteArray);
+				short[] tabShort = fileSource.popShort(multiple);
+				fileSink.push(convertToEightBits(tabShort));
+				
 			}
 			
+			//byte[] array = fileSource.pop(max-DATA_OFFSET);
+			//fileSink.push(array);		
 			fileSink.close();
+			
+			
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		*/
 
 	}
 
@@ -111,48 +112,6 @@ public class WaveFilter implements AudioFilter {
 		byteArray = fileSource.pop(12);
 		fileSink.push(byteArray);
 		
-		/*
-		for (int i = 0; i < byteArray.length; i++) {
-			System.out.println(i+1+"---"+byteArray[i]);
-		}
-		*/
-		
-		/*
-			int content = 0;
-			int count = 0;
-
-			
-			// while ((content = f.read()) != -1) {
-			while (count <= DATA_OFFSET) {
-
-				// System.out.println(count);
-				try {
-					content = fileInputStream.read();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				if (count == NUMOFCHANNELS_OFFSET) {
-					numOfChannels = content;
-				}
-
-				if (count == SAMPLERATE_OFFSET) {
-					sampleRate = content;
-				}
-
-				if (count == BYTERATE_OFFSET) {
-					byteRate = content;
-				}
-
-				if (count == BITSPERSAMPLE_OFFSET) {
-					bitsPerSample = content;
-				}
-
-				count++;
-
-			}
-		*/		
 
 	}
 
@@ -178,6 +137,32 @@ public class WaveFilter implements AudioFilter {
 		System.out.println("ByteRate:" + byteRate);
 		System.out.println("Bits per sample:" + byteRate);
 
+	}
+	
+	private int trouverMultiple(int aNumber){
+		
+		int i = 9;
+		
+		while (aNumber % i !=0) {
+			
+			i++;
+			
+		}
+		
+		return i;
+		
+	}
+	
+	private byte[] convertToEightBits(short[] tab){
+		System.out.println(tab.length);
+		byte tabByte[] = new byte[tab.length];
+		
+		for (int i = 0; i < tab.length; i++) {
+			tabByte[i] = (byte) (tab[i] >> 8);
+		}
+		
+		return tabByte;
+		
 	}
 
 }

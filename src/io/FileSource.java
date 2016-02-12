@@ -73,4 +73,28 @@ public class FileSource {
 			return null;
 		}
 	}
+	
+	public short[] popShort(int size){
+		
+		try {
+			/* create a new byte array for the number of bytes asked */
+			short[] buffer = new short[size];
+			
+			/* read the number of bytes asked for, or the amount left in the
+			 * file */
+			
+			for (int i = 0; i < buffer.length; i++) {
+				buffer[i] = _reader.readShort();
+			}
+			
+			/* return what was read */
+			return buffer;
+		} catch (IOException e) {
+			/* something went wrong, or EOF reached */
+			return null;
+		}
+		
+		
+	}
+	
 }
