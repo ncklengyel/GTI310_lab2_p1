@@ -36,13 +36,13 @@ public class WaveFilter implements AudioFilter {
 	public WaveFilter(File aWaveFile) {
 
 		bitsPerSample = 8;
-		
-		
+	
 		waveFile = aWaveFile;
 		
 		try {
 			fileSource = new FileSource(waveFile.getAbsolutePath());
-			fileSink = new FileSink("/home/nick/test.wav");
+			fileSink = new FileSink(System.getProperty("user.home")+"/convertedAudio.wav");
+			System.out.println("Converted audio file path: "+System.getProperty("user.home")+"/convertedAudio.wav");
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
