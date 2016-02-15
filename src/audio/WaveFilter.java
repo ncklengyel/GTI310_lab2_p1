@@ -47,7 +47,7 @@ public class WaveFilter implements AudioFilter {
 			//Emplacement pour l'écriture du fichier converti en 8 bits par echantillion
 			//si le systeme d'explotation est une version de windows (j'utilise un \)
 			if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-				fileSink = new FileSink(System.getProperty("user.home")+"\"+convertedAudio.wav");
+				fileSink = new FileSink(System.getProperty("user.home")+"\\"+"convertedAudio.wav");
 				
 			//sinon, l'os est unix-like (j'utilise un /)
 			//Je prends pour aquis que l'utilisateur utilise Windows ou unix-like comme OS
