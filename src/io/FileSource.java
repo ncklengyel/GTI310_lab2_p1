@@ -74,11 +74,11 @@ public class FileSource {
 		}
 	}
 	
-	public short[] popShort(int size){
+	public int[] popShort(int size){
 		
 		try {
 			/* create a new byte array for the number of bytes asked */
-			short[] buffer = new short[size];
+			int[] buffer = new int[size];
 			
 			/* read the number of bytes asked for, or the amount left in the
 			 * file */

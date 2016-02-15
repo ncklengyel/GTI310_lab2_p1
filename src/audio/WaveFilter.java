@@ -66,23 +66,25 @@ public class WaveFilter implements AudioFilter {
 		
 		try {
 			
-			int nombreDeBytes = fileInputStream.available()-DATA_OFFSET;
+			int nombreDeBytes = fileInputStream.available()-44;
+			
+			//System.out.println(nombreDeBytes);
 			
 			int nombreShort = nombreDeBytes/2;
-			
+
 			int multiple = trouverMultiple(nombreShort);
 			
 			int length = nombreShort/multiple;
 			
+			
 			for (int i = 0; i < length; i++) {
 				
-				short[] tabShort = fileSource.popShort(multiple);
-				fileSink.push(convertToEightBits(tabShort));
+				int[] tabData = fileSource.popShort(multiple);
+				
+				fileSink.pushShort(convertToEightBits(tabData));
 				
 			}
-			
-			//byte[] array = fileSource.pop(max-DATA_OFFSET);
-			//fileSink.push(array);		
+		
 			fileSink.close();
 			
 			
@@ -96,12 +98,11 @@ public class WaveFilter implements AudioFilter {
 
 	// methode qui build le header d'un fichier wave
 	private void buildHeader() {
-		
+	
+//		
 		byte[] byteRate = new byte [1];
-		byteRate[0] = 8;
+		byteRate[0] = 8;	
 		
-		byte[] byteArray = null;
-		//
 		byteArray = fileSource.pop(28);
 		
 		fileSink.push(byteArray);
@@ -109,7 +110,7 @@ public class WaveFilter implements AudioFilter {
 		fileSource.pop(1);
 		fileSink.push(byteRate);
 		
-		byteArray = fileSource.pop(12);
+		byteArray = fileSource.pop(15);
 		fileSink.push(byteArray);
 		
 
@@ -153,15 +154,19 @@ public class WaveFilter implements AudioFilter {
 		
 	}
 	
-	private byte[] convertToEightBits(short[] tab){
-		System.out.println(tab.length);
-		byte tabByte[] = new byte[tab.length];
+	/*
+	 * Methode qui qui permet de cast les valeurs d'un array de int en byte
+	 */
+	private int[] convertToEightBits(int[] tab){
+
+		int tabInt[] = new int[tab.length];
 		
 		for (int i = 0; i < tab.length; i++) {
-			tabByte[i] = (byte) (tab[i] >> 8);
+		
+			tabInt[i] = (byte)tab[i];
 		}
 		
-		return tabByte;
+		return tabInt;
 		
 	}
 
