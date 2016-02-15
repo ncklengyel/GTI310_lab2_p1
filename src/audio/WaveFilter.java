@@ -40,8 +40,21 @@ public class WaveFilter implements AudioFilter {
 		waveFile = aWaveFile;
 		
 		try {
+			
+			//Je vais chercher le path de mon fichier wave
 			fileSource = new FileSource(waveFile.getAbsolutePath());
-			fileSink = new FileSink(System.getProperty("user.home")+"/convertedAudio.wav");
+			
+			//Emplacement pour l'écriture du fichier converti en 8 bits par echantillion
+			//si le systeme d'explotation est une version de windows (j'utilise un \)
+			if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+				fileSink = new FileSink(System.getProperty("user.home")+"\"+convertedAudio.wav");
+				
+			//sinon, l'os est unix-like (j'utilise un /)
+			//Je prends pour aquis que l'utilisateur utilise Windows ou unix-like comme OS
+			}else{
+				fileSink = new FileSink(System.getProperty("user.home")+"/convertedAudio.wav");
+			}
+				
 			System.out.println("Converted audio file path: "+System.getProperty("user.home")+"/convertedAudio.wav");
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
@@ -66,25 +79,39 @@ public class WaveFilter implements AudioFilter {
 		
 		try {
 			
-			int nombreDeBytes = fileInputStream.available()-44;
+			/*
+			 * La façon donc je procede pour convertir le fichier audio:
+			 * Une fois que mon header est build je regarde le nombre de bytes qu'il me reste a lire.
+			 *Ensuite je divise ce nombre de bytes par 2 afin d'obtenir le nombre de shorts.
+			 *Je trouve un diviseur  du nombre de short afin de pourvoir traité mon fichier par petit array
+			 *Je divise le nombre de short par le diviseur trouver afin de savoir combien de fois je traite mes petit arrays
+			 */
 			
-			//System.out.println(nombreDeBytes);
+			//nombre de bits restant a lire du fichier audio (je retire les bytes du header que j'ai traité avec ma fonction priver buildHeader)
+			int nombreDeBytes = fileInputStream.available()-DATA_OFFSET;
 			
+			//nombre de shorts que mon fichier audio contient
 			int nombreShort = nombreDeBytes/2;
 
+			//je trouver un diviseur du nombre de short
+			//Je sectionne mon fichier audio en petits arrays afin de le traiter
 			int multiple = trouverMultiple(nombreShort);
 			
+			//nombre de fois que je dois traiter les petit arrays
 			int length = nombreShort/multiple;
 			
-			
+			//Pour tout mon fichier audio
 			for (int i = 0; i < length; i++) {
 				
+				//Lecture du fichier source, je pop dans un array
 				int[] tabData = fileSource.popShort(multiple);
 				
+				//Converti en 8 bits mon petit array et le push dans mon fichier
 				fileSink.pushShort(convertToEightBits(tabData));
 				
 			}
 		
+			//Je ferme mon fichier
 			fileSink.close();
 			
 			
