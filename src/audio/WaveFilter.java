@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import io.FileSink;
 import io.FileSource;
@@ -28,7 +29,7 @@ public class WaveFilter implements AudioFilter {
 	private String format = "WAVE"; //offset 8
 	private String subChunk1ID = "fmt"; //offset 12
 	private int subChunk1Size = 16; //offset 16
-	private int audioFormat = 1; //offset 20
+	private short audioFormat = 1; //offset 20
 	private short numOfChannels; // offset 22
 	private int sampleRate; // offset 24
 	private int byteRate; // offset 28
@@ -38,6 +39,7 @@ public class WaveFilter implements AudioFilter {
 	private int subChunk2Size; //offset 40
 	
 	private int nombreDeBytesData;
+	private int numSample;
 	
 	private byte[] byteArray = new byte[1];
 	
@@ -93,7 +95,7 @@ public class WaveFilter implements AudioFilter {
 		}
 		
 		
-		buildHeader();
+		buildHeader2();
 
 	}
 
@@ -138,11 +140,25 @@ public class WaveFilter implements AudioFilter {
 	// methode qui build le header d'un fichier wave
 	private void buildHeader() {
 
+	/*	
+		fileSink.push(fileSource.pop(34));
+		
+		fileSink.push(ByteBuffer.allocate(2).putShort(bitsPerSample).order(ByteOrder.LITTLE_ENDIAN).array());
+		fileSource.pop(2);
+		
+		fileSink.push(fileSource.pop(8));
+		
+	}
+	*/
+		
+		
 		fileSink.push(fileSource.pop(4));
 		
 		//4
-		fileSink.push(ByteBuffer.allocate(4).putInt(nombreDeBytesData).order(ByteOrder.LITTLE_ENDIAN).array());
-		fileSource.pop(4);
+		//fileSink.push(ByteBuffer.allocate(4).putInt(nombreDeBytesData).order(ByteOrder.LITTLE_ENDIAN).array());
+		//fileSource.pop(4);
+		
+		fileSink.push(fileSource.pop(4));
 		
 		//8
 		fileSink.push(fileSource.pop(14));
@@ -193,6 +209,49 @@ public class WaveFilter implements AudioFilter {
 		System.out.println("ByteRate:" + byteRate);
 		System.out.println("Bits per sample:" + bitsPerSample);
 
+	}
+	
+	public void buildHeader2(){
+		/*
+		 * Push directement
+		 * 
+		 * chunkID
+		 * Format
+		 * subChunk1ID
+		 * subChunk2ID
+		 * 
+		 * 
+		 */
+		
+		
+		byte[] headerSource = fileSource.pop(44);
+		
+		sampleRate = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 24, 28)).order(ByteOrder.LITTLE_ENDIAN).getInt();
+		numOfChannels = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 22, 24)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		numSample = nombreDeBytesData/1;
+		subChunk2Size = numSample * numOfChannels * bitsPerSample / 8;
+		chunkSize = 36 + subChunk2Size;
+		blockAlign = (short) (numOfChannels * bitsPerSample / 8);
+		byteRate = sampleRate * numOfChannels * bitsPerSample / 8;
+		subChunk1Size = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 16, 20)).order(ByteOrder.LITTLE_ENDIAN).getInt();
+		audioFormat = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 20, 22)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		
+		System.out.println("sampleRate: "+sampleRate);
+		System.out.println("numOfChannels: "+numOfChannels);
+		System.out.println("numSample: "+numSample);
+		System.out.println("subChunk2Size: "+subChunk2Size);
+		System.out.println("chunkSize: "+chunkSize);
+		System.out.println("blockAlign: "+blockAlign);
+		System.out.println("byteRate: "+byteRate);
+		System.out.println("subChunk1Size: "+subChunk1Size);
+		System.out.println("audioFormat: "+audioFormat);
+
+
+		
+		
+		
+		
+		
 	}
 	
 	private int trouverMultiple(int aNumber){
