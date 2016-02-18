@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 
 import io.FileSink;
 import io.FileSource;
@@ -28,13 +29,15 @@ public class WaveFilter implements AudioFilter {
 	private String subChunk1ID = "fmt"; //offset 12
 	private int subChunk1Size = 16; //offset 16
 	private int audioFormat = 1; //offset 20
-	private int numOfChannels; // offset 22
+	private short numOfChannels; // offset 22
 	private int sampleRate; // offset 24
 	private int byteRate; // offset 28
-	private int blockAlign; //offset 32
-	private int bitsPerSample; // offset 34
+	private short blockAlign; //offset 32
+	private short bitsPerSample; // offset 34
 	private String subChunkSize = "data"; //offset 36
 	private int subChunk2Size; //offset 40
+	
+	private int nombreDeBytesData;
 	
 	private byte[] byteArray = new byte[1];
 	
@@ -49,6 +52,7 @@ public class WaveFilter implements AudioFilter {
 
 		bitsPerSample = 8;
 		waveFile = aWaveFile;
+		chunkSize = 0;
 		
 		try {
 			
@@ -75,10 +79,19 @@ public class WaveFilter implements AudioFilter {
 
 		try {
 			fileInputStream = new FileInputStream(waveFile);
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		try {
+			nombreDeBytesData = fileInputStream.available()-DATA_OFFSET;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 		buildHeader();
 
@@ -86,10 +99,7 @@ public class WaveFilter implements AudioFilter {
 
 	@Override
 	public void process() {
-		
-		
-		try {
-			
+				
 			/*
 			 * La façon donc je procede pour convertir le fichier audio:
 			 * Une fois que mon header est build je regarde le nombre de bytes qu'il me reste a lire.
@@ -98,11 +108,8 @@ public class WaveFilter implements AudioFilter {
 			 *Je divise le nombre de short par le diviseur trouver afin de savoir combien de fois je traite mes petit arrays
 			 */
 			
-			//nombre de bits restant a lire du fichier audio (je retire les bytes du header que j'ai traité avec ma fonction priver buildHeader)
-			int nombreDeBytes = fileInputStream.available()-DATA_OFFSET;
-			
 			//nombre de shorts que mon fichier audio contient
-			int nombreShort = nombreDeBytes/2;
+			int nombreShort = nombreDeBytesData/2;
 
 			//je trouver un diviseur du nombre de short
 			//Je sectionne mon fichier audio en petits arrays afin de le traiter
@@ -124,89 +131,54 @@ public class WaveFilter implements AudioFilter {
 			}
 		
 			//Je ferme mon fichier
-			fileSink.close();
-			
-			
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			fileSink.close();	
 
 	}
 
 	// methode qui build le header d'un fichier wave
 	private void buildHeader() {
-	
-		//chack block aligne
-		byte[] byteRate = new byte [2];
-		byteRate[0] = 8 ;
-		byteRate[1] = 0;
+
+		fileSink.push(fileSource.pop(4));
 		
-		fileSink.push(fileSource.pop(34));
-		ByteBuffer buffer = ByteBuffer.allocate(2); 
-		buffer.order(ByteOrder.LITTLE_ENDIAN);
-		buffer.putInt(8);
-		byte tab[] =buffer.array(); 
+		//4
+		fileSink.push(ByteBuffer.allocate(4).putInt(nombreDeBytesData).order(ByteOrder.LITTLE_ENDIAN).array());
+		fileSource.pop(4);
 		
-		for (int i = 0; i < tab.length; i++) {
-			System.out.println(i+" "+tab[i ]);
-		}
-		fileSink.push(tab);
+		//8
+		fileSink.push(fileSource.pop(14));
+		
+		//22
+		numOfChannels = ByteBuffer.wrap(fileSource.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		fileSink.push(ByteBuffer.allocate(2).putShort(numOfChannels).order(ByteOrder.LITTLE_ENDIAN).array());
+		
+		//24
+		sampleRate = ByteBuffer.wrap(fileSource.pop(4)).order(ByteOrder.LITTLE_ENDIAN).getInt();
+		fileSink.push(ByteBuffer.allocate(4).putInt(sampleRate).order(ByteOrder.LITTLE_ENDIAN).array());
+		
+		//28
+		byteRate = sampleRate * numOfChannels;
+		fileSink.push(ByteBuffer.allocate(4).putInt(byteRate).order(ByteOrder.LITTLE_ENDIAN).array());
+		fileSource.pop(4);
+		
+		//32
+		blockAlign = numOfChannels;
+		fileSink.push(ByteBuffer.allocate(2).putShort(blockAlign).order(ByteOrder.LITTLE_ENDIAN).array());
 		fileSource.pop(2);
-		fileSink.push(fileSource.pop(8));
 		
-		/*
-		byte []tabByte = fileSource.pop(4);
-		try {
-			chunkID = new String(tabByte,"US-ASCII");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//34
+		fileSink.push(ByteBuffer.allocate(2).putShort(bitsPerSample).order(ByteOrder.LITTLE_ENDIAN).array());
+		fileSource.pop(2);
 		
-		chunkSize = ByteBuffer.wrap(fileSource.pop(4)).getInt();
-		*/
+		//36
+		fileSink.push(fileSource.pop(4));
 		
-//		byte[] byteRate = new byte [1];
-//		byteRate[0] = 8;
-//		
-//		
-//		fileSink.push(fileSource.pop(4));
-//		fileSink.push(byteRate);
-//		fileSink.push(fileSource.pop(29));
-//		fileSink.push(byteRate);
-//		fileSink.push(fileSource.pop(9));
-
-		
-		
-		
-
-//		byte[] byteRate = new byte [1];
-//		byteRate[0] = 8;	
-//		
-//		byteArray = fileSource.pop(34);
-//		
-//		fileSink.push(byteArray);
-//		
-//		fileSource.pop(1);
-//		fileSink.push(byteRate);
-//		
-//		byteArray = fileSource.pop(9);
-//		fileSink.push(byteArray);		
+		//40
+		subChunk2Size = nombreDeBytesData * numOfChannels;
+		fileSink.push(ByteBuffer.allocate(4).putInt(subChunk2Size).order(ByteOrder.LITTLE_ENDIAN).array());
+		fileSource.pop(4);
 
 	}
 
-	/*
-	 * Accesseurs et mutateurs
-	 */
-	public int getBitsPerSample() {
-		return bitsPerSample;
-	}
-
-	public void setBitsPerSample(int bitsPerSample) {
-		this.bitsPerSample = bitsPerSample;
-	}
 
 	/*
 	 * Méthode permettant d'afficher le header du fichier passé en paramètre
@@ -214,12 +186,12 @@ public class WaveFilter implements AudioFilter {
 	public void printHeader() {
 
 		System.out.println("---Header of " + waveFile.getName() + "---");
-		System.out.println("ChunkID: "+chunkID);
+		//System.out.println("ChunkID: "+chunkID);
 		System.out.println("ChunkSize: "+chunkSize);
 		System.out.println("Number of channels:" + numOfChannels);
 		System.out.println("Sample rate:" + sampleRate);
 		System.out.println("ByteRate:" + byteRate);
-		System.out.println("Bits per sample:" + byteRate);
+		System.out.println("Bits per sample:" + bitsPerSample);
 
 	}
 	
