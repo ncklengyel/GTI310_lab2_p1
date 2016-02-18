@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import io.FileSink;
 import io.FileSource;
@@ -18,11 +21,20 @@ public class WaveFilter implements AudioFilter {
 
 	// Variable privées
 	private File waveFile;
+	
+	private String chunkID = "RIFF"; //offset 0
+	private int chunkSize; //offset 4
+	private String format = "WAVE"; //offset 8
+	private String subChunk1ID = "fmt"; //offset 12
+	private int subChunk1Size = 16; //offset 16
+	private int audioFormat = 1; //offset 20
 	private int numOfChannels; // offset 22
 	private int sampleRate; // offset 24
 	private int byteRate; // offset 28
+	private int blockAlign; //offset 32
 	private int bitsPerSample; // offset 34
-	
+	private String subChunkSize = "data"; //offset 36
+	private int subChunk2Size; //offset 40
 	
 	private byte[] byteArray = new byte[1];
 	
@@ -36,7 +48,6 @@ public class WaveFilter implements AudioFilter {
 	public WaveFilter(File aWaveFile) {
 
 		bitsPerSample = 8;
-	
 		waveFile = aWaveFile;
 		
 		try {
@@ -54,8 +65,7 @@ public class WaveFilter implements AudioFilter {
 			}else{
 				fileSink = new FileSink(System.getProperty("user.home")+"/convertedAudio.wav");
 			}
-				
-			System.out.println("Converted audio file path: "+System.getProperty("user.home")+"/convertedAudio.wav");
+			
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -69,13 +79,14 @@ public class WaveFilter implements AudioFilter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		buildHeader();
 
 	}
 
 	@Override
 	public void process() {
 		
-		buildHeader();
 		
 		try {
 			
@@ -107,7 +118,8 @@ public class WaveFilter implements AudioFilter {
 				int[] tabData = fileSource.popShort(multiple);
 				
 				//Converti en 8 bits mon petit array et le push dans mon fichier
-				fileSink.pushShort(convertToEightBits(tabData));
+				//fileSink.pushShort(convertToEightBits(tabData));
+				fileSink.push(convertToEightBits2(tabData));
 				
 			}
 		
@@ -126,20 +138,62 @@ public class WaveFilter implements AudioFilter {
 	// methode qui build le header d'un fichier wave
 	private void buildHeader() {
 	
+		//chack block aligne
+		byte[] byteRate = new byte [2];
+		byteRate[0] = 8 ;
+		byteRate[1] = 0;
+		
+		fileSink.push(fileSource.pop(34));
+		ByteBuffer buffer = ByteBuffer.allocate(2); 
+		buffer.order(ByteOrder.LITTLE_ENDIAN);
+		buffer.putInt(8);
+		byte tab[] =buffer.array(); 
+		
+		for (int i = 0; i < tab.length; i++) {
+			System.out.println(i+" "+tab[i ]);
+		}
+		fileSink.push(tab);
+		fileSource.pop(2);
+		fileSink.push(fileSource.pop(8));
+		
+		/*
+		byte []tabByte = fileSource.pop(4);
+		try {
+			chunkID = new String(tabByte,"US-ASCII");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		chunkSize = ByteBuffer.wrap(fileSource.pop(4)).getInt();
+		*/
+		
+//		byte[] byteRate = new byte [1];
+//		byteRate[0] = 8;
 //		
-		byte[] byteRate = new byte [1];
-		byteRate[0] = 8;	
+//		
+//		fileSink.push(fileSource.pop(4));
+//		fileSink.push(byteRate);
+//		fileSink.push(fileSource.pop(29));
+//		fileSink.push(byteRate);
+//		fileSink.push(fileSource.pop(9));
+
 		
-		byteArray = fileSource.pop(28);
 		
-		fileSink.push(byteArray);
 		
-		fileSource.pop(1);
-		fileSink.push(byteRate);
-		
-		byteArray = fileSource.pop(15);
-		fileSink.push(byteArray);
-		
+
+//		byte[] byteRate = new byte [1];
+//		byteRate[0] = 8;	
+//		
+//		byteArray = fileSource.pop(34);
+//		
+//		fileSink.push(byteArray);
+//		
+//		fileSource.pop(1);
+//		fileSink.push(byteRate);
+//		
+//		byteArray = fileSource.pop(9);
+//		fileSink.push(byteArray);		
 
 	}
 
@@ -160,6 +214,8 @@ public class WaveFilter implements AudioFilter {
 	public void printHeader() {
 
 		System.out.println("---Header of " + waveFile.getName() + "---");
+		System.out.println("ChunkID: "+chunkID);
+		System.out.println("ChunkSize: "+chunkSize);
 		System.out.println("Number of channels:" + numOfChannels);
 		System.out.println("Sample rate:" + sampleRate);
 		System.out.println("ByteRate:" + byteRate);
@@ -194,6 +250,19 @@ public class WaveFilter implements AudioFilter {
 		}
 		
 		return tabInt;
+		
+	}
+	
+	private byte[] convertToEightBits2(int[] tab){
+
+		byte tabByte[] = new byte[tab.length];
+		
+		for (int i = 0; i < tab.length; i++) {
+		
+			tabByte[i] = (byte)tab[i];
+		}
+		
+		return tabByte;
 		
 	}
 

@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.omg.CORBA.PUBLIC_MEMBER;
+
 /**
  * A FileSource object opens a handle on a file and sends the data in
  * sequential order to a caller. When the data reaches the end-of-file marker,
@@ -92,9 +94,22 @@ public class FileSource {
 		} catch (IOException e) {
 			/* something went wrong, or EOF reached */
 			return null;
+		}	
+		
+	}
+	
+	public float popFloat(){
+		
+		float a = 0;
+		try {
+			 a = _reader.readFloat();
+			return a;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
-		
+		return a;
+
 	}
 	
 }
