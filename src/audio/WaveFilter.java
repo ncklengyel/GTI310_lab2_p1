@@ -27,7 +27,7 @@ public class WaveFilter implements AudioFilter {
 	private String chunkID = "RIFF"; //offset 0
 	private int chunkSize; //offset 4
 	private String format = "WAVE"; //offset 8
-	private String subChunk1ID = "fmt"; //offset 12
+	private String subChunk1ID = "fmt "; //offset 12
 	private int subChunk1Size = 16; //offset 16
 	private short audioFormat = 1; //offset 20
 	private short numOfChannels; // offset 22
@@ -225,6 +225,7 @@ public class WaveFilter implements AudioFilter {
 		
 		
 		byte[] headerSource = fileSource.pop(44);
+		byte[] headerOut = new byte[44];
 		
 		sampleRate = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 24, 28)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 		numOfChannels = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 22, 24)).order(ByteOrder.LITTLE_ENDIAN).getShort();
@@ -245,10 +246,6 @@ public class WaveFilter implements AudioFilter {
 		System.out.println("byteRate: "+byteRate);
 		System.out.println("subChunk1Size: "+subChunk1Size);
 		System.out.println("audioFormat: "+audioFormat);
-
-
-		
-		
 		
 		
 		
