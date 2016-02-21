@@ -95,9 +95,9 @@ public class WaveFilter implements AudioFilter {
 		}
 		
 		
-		//buildHeader2();
+		buildHeader2();
 		//fileSource.close();
-		fileSink.close();
+		//fileSink.close();
 
 	}
 

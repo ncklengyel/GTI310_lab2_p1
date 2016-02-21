@@ -27,8 +27,8 @@ public class Application {
 		File waveFile = new File(args[0]);
 		
 		WaveFilter waveFilter = new WaveFilter(waveFile);
-		//waveFilter.process();
-		waveFilter.printSourceHeader();
+		waveFilter.process();
+		//waveFilter.printSourceHeader();
 		//waveFilter.printHeader();
 		
 	}
