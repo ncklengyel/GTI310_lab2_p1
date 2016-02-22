@@ -104,6 +104,10 @@ public class WaveFilter implements AudioFilter {
 	@Override
 	public void process() {
 				
+	
+		
+		
+		
 			/*
 			 * La façon donc je procede pour convertir le fichier audio:
 			 * Une fois que mon header est build je regarde le nombre de bytes qu'il me reste a lire.
@@ -113,23 +117,23 @@ public class WaveFilter implements AudioFilter {
 			 */
 			
 			//nombre de shorts que mon fichier audio contient
-			int nombreShort = nombreDeBytesData/2;
+		int nombreShort = nombreDeBytesData/2;
 
 			//je trouver un diviseur du nombre de short
 			//Je sectionne mon fichier audio en petits arrays afin de le traiter
-			int multiple = trouverMultiple(nombreShort);
+		int multiple = trouverMultiple(nombreShort);
 			
 			//nombre de fois que je dois traiter les petit arrays
-			int length = nombreShort/multiple;
+		int length = nombreShort/multiple;
 			
 			//Pour tout mon fichier audio
-			for (int i = 0; i < length; i++) {
+		for (int i = 0; i < length; i++) {
 				
 				//Lecture du fichier source, je pop dans un array
-				int[] tabData = fileSource.popShort(multiple);
+			int[] tabData = fileSource.popShort(multiple);
 				
 				//Converti en 8 bits mon petit array et le push dans mon fichier
-				fileSink.push(convertToEightBits2(tabData));
+			fileSink.push(convertToEightBits2(tabData));
 				//fileSink.pushBytes();
 				
 				
@@ -373,6 +377,12 @@ public class WaveFilter implements AudioFilter {
 		System.out.println("SubChunk2Size: " + subChunk2Size);
 		
 		fileSource.close();
+		
+	}
+	
+	private boolean estFichierValide(){
+		
+		
 		
 	}
 	
