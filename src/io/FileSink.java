@@ -76,10 +76,14 @@ public class FileSink {
 		
 	}
 	
-	public void pushBytes(String aString){
+	public void pushBytes(int[] tab){
 		
 		try {
-			_writer.writeBytes(aString);
+			
+			for (int i = 0; i < tab.length; i++) {
+				_writer.writeByte(tab[i]);
+			}
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

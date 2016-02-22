@@ -129,8 +129,9 @@ public class WaveFilter implements AudioFilter {
 				int[] tabData = fileSource.popShort(multiple);
 				
 				//Converti en 8 bits mon petit array et le push dans mon fichier
-				//fileSink.pushShort(convertToEightBits(tabData));
 				fileSink.push(convertToEightBits2(tabData));
+				//fileSink.pushBytes();
+				
 				
 			}
 		
@@ -138,78 +139,22 @@ public class WaveFilter implements AudioFilter {
 			fileSink.close();	
 
 	}
-
-	// methode qui build le header d'un fichier wave
-	private void buildHeader() {
-
-	/*	
-		fileSink.push(fileSource.pop(34));
-		
-		fileSink.push(ByteBuffer.allocate(2).putShort(bitsPerSample).order(ByteOrder.LITTLE_ENDIAN).array());
-		fileSource.pop(2);
-		
-		fileSink.push(fileSource.pop(8));
-		
-	}
-	*/
-		
-		
-		fileSink.push(fileSource.pop(4));
-		
-		//4
-		//fileSink.push(ByteBuffer.allocate(4).putInt(nombreDeBytesData).order(ByteOrder.LITTLE_ENDIAN).array());
-		//fileSource.pop(4);
-		
-		fileSink.push(fileSource.pop(4));
-		
-		//8
-		fileSink.push(fileSource.pop(14));
-		
-		//22
-		numOfChannels = ByteBuffer.wrap(fileSource.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-		fileSink.push(ByteBuffer.allocate(2).putShort(numOfChannels).order(ByteOrder.LITTLE_ENDIAN).array());
-		
-		//24
-		sampleRate = ByteBuffer.wrap(fileSource.pop(4)).order(ByteOrder.LITTLE_ENDIAN).getInt();
-		fileSink.push(ByteBuffer.allocate(4).putInt(sampleRate).order(ByteOrder.LITTLE_ENDIAN).array());
-		
-		//28
-		byteRate = sampleRate * numOfChannels;
-		fileSink.push(ByteBuffer.allocate(4).putInt(byteRate).order(ByteOrder.LITTLE_ENDIAN).array());
-		fileSource.pop(4);
-		
-		//32
-		blockAlign = numOfChannels;
-		fileSink.push(ByteBuffer.allocate(2).putShort(blockAlign).order(ByteOrder.LITTLE_ENDIAN).array());
-		fileSource.pop(2);
-		
-		//34
-		fileSink.push(ByteBuffer.allocate(2).putShort(bitsPerSample).order(ByteOrder.LITTLE_ENDIAN).array());
-		fileSource.pop(2);
-		
-		//36
-		fileSink.push(fileSource.pop(4));
-		
-		//40
-		subChunk2Size = nombreDeBytesData * numOfChannels;
-		fileSink.push(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(subChunk2Size).array());
-		fileSource.pop(4);
-
-	}
-
-
 	/*
 	 * Méthode permettant d'afficher le header du fichier passé en paramètre
 	 */
 	public void printHeader() {
 
-		System.out.println("---Header of " + waveFile.getName() + "---");
-		//System.out.println("ChunkID: "+chunkID);
-		System.out.println("ChunkSize: "+chunkSize);
-		System.out.println("Number of channels:" + numOfChannels);
-		System.out.println("Sample rate:" + sampleRate);
-		System.out.println("ByteRate:" + byteRate);
-		System.out.println("Bits per sample:" + bitsPerSample);
+		System.out.println("PRIVATE VARS");
+		System.out.println("chunkSize: "+chunkSize);
+		System.out.println("subChunk1Size: "+subChunk1Size);
+		System.out.println("AudioFormat: "+audioFormat);
+		System.out.println("numOfChannels: "+numOfChannels);
+		System.out.println("sampleRate: "+sampleRate);
+		System.out.println("ByteRate: "+ byteRate);
+		System.out.println("blockAlign: "+blockAlign);
+		System.out.println("bitsPerSample: "+bitsPerSample);
+		System.out.println("subChunk2Size: "+subChunk2Size);
+		System.out.println("END\n");
 
 	}
 	
@@ -231,7 +176,7 @@ public class WaveFilter implements AudioFilter {
 		
 		sampleRate = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 24, 28)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 		numOfChannels = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 22, 24)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-		numSample = nombreDeBytesData/1;
+		numSample = nombreDeBytesData/4/1;
 		subChunk2Size = numSample * numOfChannels * bitsPerSample / 8;
 		chunkSize = 36 + subChunk2Size;
 		blockAlign = (short) (numOfChannels * bitsPerSample / 8);
@@ -310,17 +255,17 @@ public class WaveFilter implements AudioFilter {
 //			System.out.println(i+": "+headerOut[i]);
 //		}
 		
-		System.out.println("PRIVATE VARS");
-		System.out.println("chunkSize: "+chunkSize);
-		System.out.println("subChunk1Size: "+subChunk1Size);
-		System.out.println("AudioFormat: "+audioFormat);
-		System.out.println("numOfChannels: "+numOfChannels);
-		System.out.println("sampleRate: "+sampleRate);
-		System.out.println("ByteRate: "+ byteRate);
-		System.out.println("blockAlign: "+blockAlign);
-		System.out.println("bitsPerSample: "+bitsPerSample);
-		System.out.println("subChunk2Size: "+subChunk2Size);
-		System.out.println("END\n");
+//		System.out.println("PRIVATE VARS");
+//		System.out.println("chunkSize: "+chunkSize);
+//		System.out.println("subChunk1Size: "+subChunk1Size);
+//		System.out.println("AudioFormat: "+audioFormat);
+//		System.out.println("numOfChannels: "+numOfChannels);
+//		System.out.println("sampleRate: "+sampleRate);
+//		System.out.println("ByteRate: "+ byteRate);
+//		System.out.println("blockAlign: "+blockAlign);
+//		System.out.println("bitsPerSample: "+bitsPerSample);
+//		System.out.println("subChunk2Size: "+subChunk2Size);
+//		System.out.println("END\n");
 		
 		
 	}
@@ -348,7 +293,9 @@ public class WaveFilter implements AudioFilter {
 		
 		for (int i = 0; i < tab.length; i++) {
 		
-			tabInt[i] = (byte)tab[i];
+			//System.out.println(tab[i]);
+			//tabInt[i] = Math.abs(tab[i])*255/65535;
+			//System.out.println(tabInt[i]);
 		}
 		
 		return tabInt;
@@ -434,8 +381,9 @@ public class WaveFilter implements AudioFilter {
 		byte tabByte[] = new byte[tab.length];
 		
 		for (int i = 0; i < tab.length; i++) {
-		
-			tabByte[i] = (byte)tab[i];
+				
+				tabByte[i] = (byte)tab[i];
+			
 		}
 		
 		return tabByte;

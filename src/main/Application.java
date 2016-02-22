@@ -28,8 +28,7 @@ public class Application {
 		
 		WaveFilter waveFilter = new WaveFilter(waveFile);
 		waveFilter.process();
-		//waveFilter.printSourceHeader();
-		//waveFilter.printHeader();
+		waveFilter.printHeader();
 		
 	}
 }
