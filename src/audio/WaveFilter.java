@@ -380,11 +380,11 @@ public class WaveFilter implements AudioFilter {
 		
 	}
 	
-	private boolean estFichierValide(){
+	//private boolean estFichierValide(){
 		
 		
 		
-	}
+	//}
 	
 	private byte[] convertToEightBits2(int[] tab){
 
@@ -392,7 +392,8 @@ public class WaveFilter implements AudioFilter {
 		
 		for (int i = 0; i < tab.length; i++) {
 				
-				tabByte[i] = (byte)tab[i];
+				tabByte[i] = (byte)(tab[i]/256);
+				//System.out.println(tabByte[i]);
 			
 		}
 		
