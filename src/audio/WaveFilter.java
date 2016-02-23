@@ -256,24 +256,6 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
-	/*
-	 * Methode qui qui permet de cast les valeurs d'un array de int en byte
-	 */
-	private int[] convertToEightBits(int[] tab) {
-
-		int tabInt[] = new int[tab.length];
-
-		for (int i = 0; i < tab.length; i++) {
-
-			// System.out.println(tab[i]);
-			// tabInt[i] = Math.abs(tab[i])*255/65535;
-			// System.out.println(tabInt[i]);
-		}
-
-		return tabInt;
-
-	}
-
 	private void insertInArray(byte[] tabDestination, byte[] tabSource, int borneInf, int bornSup) {
 
 		int count = 0;
@@ -354,21 +336,22 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
+	
+	/*
+	 * Methode qui qui permet de cast les valeurs d'un array de int en byte
+	 */
 	private byte[] convertToEightBits2(int[] tab) {
-
-		int temp;
-		byte tempByte;
 		
 		byte tabByte[] = new byte[tab.length];
-
+		
 		for (int i = 0; i < tab.length; i++) {
-
-			//temp = tab[i];
-			//tempByte = (byte) ((65536)/100);
-			//tempByte += (byte) ((temp & 0x80)>>7);
-			tabByte[i] = 0;
-			// System.out.println(tabByte[i]);
-
+			
+			/*
+			 * Source:
+			 * https://community.oracle.com/thread/1273228?start=0&tstart=0
+			 */
+			tabByte[i] = (byte) (tab[i]^0x80);
+		
 		}
 
 		return tabByte;

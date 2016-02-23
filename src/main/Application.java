@@ -1,12 +1,6 @@
 package main;
 
 import java.io.File;
-import java.io.FileFilter;
-
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-import audio.AudioFilter;
 import audio.WaveFilter;
 
 public class Application {
