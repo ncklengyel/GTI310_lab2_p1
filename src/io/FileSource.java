@@ -111,4 +111,22 @@ public class FileSource {
 		return a;
 
 	}
+	
+	public int available(){
+		
+		int nbBytes = 0;
+		
+		try {
+			
+			nbBytes = _reader.available();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return nbBytes;
+		
+	}
+	
 }

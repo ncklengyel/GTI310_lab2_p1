@@ -26,9 +26,10 @@ public class Application {
 		
 		File waveFile = new File(args[0]);
 		
-		WaveFilter waveFilter = new WaveFilter(waveFile);
+		WaveFilter waveFilter = new WaveFilter(waveFile,"/Users/nick/wevwvwewfwfewf.wav");
+		//waveFilter.printSourceHeader();
 		waveFilter.process();
-		waveFilter.printHeader();
+		
 		
 	}
 }
