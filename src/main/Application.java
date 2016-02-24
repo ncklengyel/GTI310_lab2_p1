@@ -1,6 +1,7 @@
 package main;
 
 import java.io.File;
+
 import audio.WaveFilter;
 
 public class Application {
@@ -20,10 +21,20 @@ public class Application {
 		
 		File waveFile = new File(args[0]);
 		
-		WaveFilter waveFilter = new WaveFilter(waveFile,"/Users/nick/wevwvwewfwfewf.wav");
-		//waveFilter.printSourceHeader();
-		waveFilter.process();
 		
-		
+		if (waveFile.exists()) {
+			
+			WaveFilter waveFilter = new WaveFilter(waveFile,args[1]);
+			waveFilter.process();
+			
+			
+		}else {
+			
+			System.out.println("Le fichier "+args[0]+" n'a pas été trouver");
+			System.exit(0);
+			
+		}
+	
 	}
+		
 }

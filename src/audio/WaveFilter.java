@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Scanner;
 
 import io.FileSink;
 import io.FileSource;
@@ -22,6 +23,7 @@ public class WaveFilter implements AudioFilter {
 	// Variable privées
 	private File waveFile;
 	private String writePath;
+	private File writeFile;
 
 	private String chunkID = "RIFF"; // offset 0
 	private int chunkSize; // offset 4
@@ -50,6 +52,8 @@ public class WaveFilter implements AudioFilter {
 		
 		writePath = aPath;
 		
+		writeFile = new File(writePath);
+
 		/*
 		 * try {
 		 * 
@@ -72,54 +76,63 @@ public class WaveFilter implements AudioFilter {
 		FileSink fileSink;
 		FileSource fileSource;
 
-		try {
-
-			fileSink = new FileSink(writePath);
-			fileSource = new FileSource(waveFile.getAbsolutePath());
-
-			buildHeader(fileSource, fileSink);
-
-			/*
-			 * La façon donc je procede pour convertir le fichier audio: Une
-			 * fois que mon header est build je regarde le nombre de bytes qu'il
-			 * me reste a lire. Ensuite je divise ce nombre de bytes par 2 afin
-			 * d'obtenir le nombre de shorts. Je trouve un diviseur du nombre de
-			 * short afin de pourvoir traité mon fichier par petit array Je
-			 * divise le nombre de short par le diviseur trouver afin de savoir
-			 * combien de fois je traite mes petit arrays
-			 */
-
-			// nombre de shorts que mon fichier audio contient
-			int nombreShort = fileSource.available() / 2;
+		if (isValid() && isWriteLocationGood()) {
 			
-			//System.out.println(nombreShort);
-			
-			// je trouver un diviseur du nombre de short
-			// Je sectionne mon fichier audio en petits arrays afin de le
-			// traiter
-			int multiple = trouverMultiple(nombreShort);
+			try {
 
-			// nombre de fois que je dois traiter les petit arrays
-			int length = nombreShort / multiple;
+				fileSink = new FileSink(writePath);
+				fileSource = new FileSource(waveFile.getAbsolutePath());
 
-			// Pour tout mon fichier audio
-			for (int i = 0; i < length; i++) {
+				buildHeader(fileSource, fileSink);
 
-				int[] tabData = fileSource.popShort(multiple);
+				/*
+				 * La façon donc je procede pour convertir le fichier audio: Une
+				 * fois que mon header est build je regarde le nombre de bytes
+				 * qu'il me reste a lire. Ensuite je divise ce nombre de bytes
+				 * par 2 afin d'obtenir le nombre de shorts. Je trouve un
+				 * diviseur du nombre de short afin de pourvoir traité mon
+				 * fichier par petit array Je divise le nombre de short par le
+				 * diviseur trouver afin de savoir combien de fois je traite mes
+				 * petit arrays
+				 */
 
-				// Converti en 8 bits mon petit array et le push dans mon
-				// fichier
-				fileSink.push(convertToEightBits2(tabData));
-				// fileSink.pushBytes();
+				// nombre de shorts que mon fichier audio contient
+				int nombreShort = fileSource.available() / 2;
 
+				// System.out.println(nombreShort);
+
+				// je trouver un diviseur du nombre de short
+				// Je sectionne mon fichier audio en petits arrays afin de le
+				// traiter
+				int multiple = trouverMultiple(nombreShort);
+
+				// nombre de fois que je dois traiter les petit arrays
+				int length = nombreShort / multiple;
+
+				// Pour tout mon fichier audio
+				for (int i = 0; i < length; i++) {
+
+					int[] tabData = fileSource.popShort(multiple);
+
+					// Converti en 8 bits mon petit array et le push dans mon
+					// fichier
+					fileSink.push(convertToEightBits2(tabData));
+					// fileSink.pushBytes();
+
+				}
+
+				// Je ferme mon fichier
+				fileSink.close();
+
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
-			// Je ferme mon fichier
-			fileSink.close();
+		} else {
 
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.exit(0);
+
 		}
 
 	}
@@ -150,15 +163,14 @@ public class WaveFilter implements AudioFilter {
 
 		headerSource = fileSource.pop(44);
 		headerOut = new byte[44];
-		
+
 		nombreDeBytesData = fileSource.available();
-		System.out.println(nombreDeBytesData);
 
 		bitsPerSample = 8;
 		sampleRate = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 24, 28)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 		numOfChannels = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 22, 24)).order(ByteOrder.LITTLE_ENDIAN)
 				.getShort();
-		
+
 		numSample = nombreDeBytesData / 4 / 1;
 		subChunk2Size = numSample * numOfChannels * bitsPerSample / 8;
 		chunkSize = 36 + subChunk2Size;
@@ -331,31 +343,141 @@ public class WaveFilter implements AudioFilter {
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 
 	}
 
-	
+	private boolean isValid() {
+
+		boolean valid = true;
+
+		try {
+
+			FileSource fileSourceTemp = new FileSource(waveFile.getAbsolutePath());
+
+			int fileSize = fileSourceTemp.available();
+
+			byte[] headerSource = fileSourceTemp.pop(44);
+
+			byte[] chunkIDarray = Arrays.copyOfRange(headerSource, 0, 4);
+			String chunkID = new String(chunkIDarray, StandardCharsets.US_ASCII);
+
+			byte[] chunkSizeArray = Arrays.copyOfRange(headerSource, 4, 8);
+			int chunckSize = ByteBuffer.wrap(chunkSizeArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
+
+			byte[] formatArray = Arrays.copyOfRange(headerSource, 8, 12);
+			String format = new String(formatArray, StandardCharsets.US_ASCII);
+
+			byte[] chunkSize1IDarray = Arrays.copyOfRange(headerSource, 12, 16);
+			String chunkSize1ID = new String(chunkSize1IDarray, StandardCharsets.US_ASCII);
+
+			byte[] subChunk1SizeArray = Arrays.copyOfRange(headerSource, 16, 20);
+			int subChunk1Size = ByteBuffer.wrap(subChunk1SizeArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
+
+			byte[] audioFormatArray = Arrays.copyOfRange(headerSource, 20, 22);
+			short audioFormat = ByteBuffer.wrap(audioFormatArray).order(ByteOrder.LITTLE_ENDIAN).getShort();
+
+			byte[] numChannelsArray = Arrays.copyOfRange(headerSource, 22, 24);
+			short numChannels = ByteBuffer.wrap(numChannelsArray).order(ByteOrder.LITTLE_ENDIAN).getShort();
+
+			byte[] sampleRateArray = Arrays.copyOfRange(headerSource, 24, 28);
+			int sampleRate = ByteBuffer.wrap(sampleRateArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
+
+			byte[] byteRateArray = Arrays.copyOfRange(headerSource, 28, 32);
+			int byteRate = ByteBuffer.wrap(byteRateArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
+
+			byte[] blockAlignArray = Arrays.copyOfRange(headerSource, 32, 34);
+			short blockAlign = ByteBuffer.wrap(blockAlignArray).order(ByteOrder.LITTLE_ENDIAN).getShort();
+
+			byte[] bitsPerSampleArray = Arrays.copyOfRange(headerSource, 34, 36);
+			short bitsPerSample = ByteBuffer.wrap(bitsPerSampleArray).order(ByteOrder.LITTLE_ENDIAN).getShort();
+
+			byte[] chunkSize2IDarray = Arrays.copyOfRange(headerSource, 36, 40);
+			String chunkSize2ID = new String(chunkSize2IDarray, StandardCharsets.US_ASCII);
+
+			byte[] subChunk2SizeArray = Arrays.copyOfRange(headerSource, 36, 44);
+			short subChunk2Size = ByteBuffer.wrap(subChunk2SizeArray).order(ByteOrder.LITTLE_ENDIAN).getShort();
+
+			fileSourceTemp.close();
+
+			if (fileSize < DATA_OFFSET) {
+
+				System.out.println("Le fichier reçu en paramètre semble trop petit (moins de 44 octets)");
+
+			} else if (!format.equals(this.format)) {
+
+				System.out.println("Le fichier reçu en paramètre n'est pas un fichier audio de format wave");
+				valid = false;
+
+			} else if (bitsPerSample != 16) {
+
+				System.out.println("Le fichier audio entré en paramètre est " + bitsPerSample
+						+ "bits par échantillon\nLe programme converti "
+						+ "seulement les fichiers wave 16bits par échantillon");
+				valid = false;
+
+			}
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return valid;
+
+	}
+
 	/*
 	 * Methode qui qui permet de cast les valeurs d'un array de int en byte
 	 */
 	private byte[] convertToEightBits2(int[] tab) {
-		
+
 		byte tabByte[] = new byte[tab.length];
-		
+
 		for (int i = 0; i < tab.length; i++) {
-			
+
 			/*
 			 * Source:
 			 * https://community.oracle.com/thread/1273228?start=0&tstart=0
 			 */
-			tabByte[i] = (byte) (tab[i]^0x80);
-		
+			tabByte[i] = (byte) (tab[i] ^ 0x80);
+
 		}
 
 		return tabByte;
 
+	}
+	
+	private boolean isWriteLocationGood(){
+		
+		Scanner keyboard = new Scanner(System.in);
+		String ans = "";
+		boolean isGood = false;
+		
+		if (writeFile.exists()) {
+			
+			System.out.println("Le fichier destination "+writeFile.getAbsolutePath()+" exist");
+			System.out.print("Voulez-vous l'écraser ? (y/n) : ");
+			ans = keyboard.next();
+			
+			if (ans.equalsIgnoreCase("y")) {
+				
+				isGood = true;
+				
+			}else{
+				
+				System.exit(0);
+				
+			}	
+			
+		}else{
+			
+			isGood = true;
+			
+		}
+		
+		return isGood;
+		
 	}
 
 }
