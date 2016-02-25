@@ -1,3 +1,10 @@
+/**
+ * Auteur: Nicolas Lengyel, Vuong Viet Vu, Jia Ji Ho
+ * 
+ * WaveFilter implémente AudioFilter et permet de créer un filtre concret
+ * pour manipuler des fichiers audio de format wave.
+ */
+
 package audio;
 
 import java.io.File;
@@ -16,45 +23,50 @@ public class WaveFilter implements AudioFilter {
 	private final int DATA_OFFSET = 44;
 
 	// Variable privées
-	private File waveFile;
-	private String writePath;
-	private File writeFile;
+	private File waveFile;		//Le fichier wave Source (16bits pas echantillon)
+	private String writePath;	//Le chemin de mon fichier converti
+	private File writeFile;		//fichier en sortie (fichier converti)
 
-	private String chunkID = "RIFF"; // offset 0
-	private int chunkSize; // offset 4
-	private String format = "WAVE"; // offset 8
-	private String subChunk1ID = "fmt "; // offset 12
-	private int subChunk1Size = 16; // offset 16
-	private short audioFormat = 1; // offset 20
-	private short numOfChannels; // offset 22
-	private int sampleRate; // offset 24
-	private int byteRate; // offset 28
-	private short blockAlign; // offset 32
-	private short bitsPerSample; // offset 34
-	private String subChunk2ID = "data"; // offset 36
-	private int subChunk2Size; // offset 40
-
-	private int nombreDeBytesData;
-	private int nombreDeBytesTotal;
-	private int numSample;
+	private String chunkID = "RIFF";		// offset 0
+	private int chunkSize;					// offset 4
+	private String format = "WAVE";			// offset 8
+	private String subChunk1ID = "fmt ";	// offset 12
+	private int subChunk1Size = 16; 		// offset 16
+	private short audioFormat = 1;			// offset 20
+	private short numOfChannels;			// offset 22
+	private int sampleRate;					// offset 24
+	private int byteRate;					// offset 28
+	private short blockAlign;				// offset 32
+	private short bitsPerSample;			// offset 34
+	private String subChunk2ID = "data";	// offset 36
+	private int subChunk2Size; 				// offset 40
+	
+	private int nombreDeBytesData;			//nombre de bytes du data
+	private int numSample;					//Nombre d'échantillon dans le fichier converti
 
 	/*
 	 * Constructeur
 	 */
 	public WaveFilter(File aWaveFile, String aPath) {
 
+		//Initialisation des variables privées
 		waveFile = aWaveFile;
 		writePath = aPath;
 		writeFile = new File(writePath);
 
 	}
 
-	@Override
+	/*
+	 *Méthode qui permet la convertion du fichier en paramètre 16bits à 8bits par échantillon
+	 */
 	public void process() {
 
+		
 		FileSink fileSink;
 		FileSource fileSource;
 
+		//Si mon fichier entré en paramètre est valide et que
+		//l'emplacement ou écrire le fichier converti est ok
 		if (isValid() && isWriteLocationGood()) {
 
 			try {
@@ -62,6 +74,7 @@ public class WaveFilter implements AudioFilter {
 				fileSink = new FileSink(writePath);
 				fileSource = new FileSource(waveFile.getAbsolutePath());
 
+				//build le header du fichier à convertir
 				buildHeader(fileSource, fileSink);
 
 				/*
@@ -70,7 +83,7 @@ public class WaveFilter implements AudioFilter {
 				 * qu'il me reste a lire. Ensuite je divise ce nombre de bytes
 				 * par 2 afin d'obtenir le nombre de shorts. Je trouve un
 				 * diviseur du nombre de short afin de pourvoir traité mon
-				 * fichier par petit array Je divise le nombre de short par le
+				 * fichier par petit array. Je divise le nombre de short par le
 				 * diviseur trouver afin de savoir combien de fois je traite mes
 				 * petit arrays
 				 */
@@ -78,48 +91,40 @@ public class WaveFilter implements AudioFilter {
 				// nombre de shorts que mon fichier audio contient
 				int nombreShort = fileSource.available() / 2;
 
-				// System.out.println(nombreShort);
 
 				// je trouver un diviseur du nombre de short
-				// Je sectionne mon fichier audio en petits arrays afin de
-				// le
-				// traiter
 				int multiple = trouverDiviseur(nombreShort);
 
 				// nombre de fois que je dois traiter les petit arrays
 				int length = nombreShort / multiple;
 
-				// Pour tout mon fichier audio
+				// Pour tout mon fichier audio (length)
 				for (int i = 0; i < length; i++) {
 
+					//récupération d'un array
 					int[] tabData = fileSource.popShort(multiple);
 
 					// Converti en 8 bits mon petit array et le push dans
-					// mon
-					// fichier
+					// mon fichier en sorti
 					fileSink.push(convertToEightBits2(tabData));
-					// fileSink.pushBytes();
 
 				}
 
-				// Je ferme mon fichier
+				//Un fois terminé, je ferme mon fichier en sorti
 				fileSink.close();
 
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
-
-		} else {
-
-			System.exit(0);
-
+			
 		}
 
 	}
 
 	/*
-	 * Méthode permettant d'afficher le header du fichier passé en paramètre
+	 * Méthode permettant d'afficher le header du fichier converti
+	 * (La méthode buildHeader doit etre executé avant afin d'avoir les bonnes valeurs)
 	 */
 	public void printHeader() {
 
@@ -137,6 +142,9 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
+	/*
+	 * Méthode permttant de build mon header du fichier à convertir
+	 */
 	private void buildHeader(FileSource fileSource, FileSink fileSink) {
 
 		byte[] headerSource;
