@@ -1,22 +1,17 @@
 package audio;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Scanner;
-
 import io.FileSink;
 import io.FileSource;
 
 public class WaveFilter implements AudioFilter {
+
 	// Constantes
 	private final int DATA_OFFSET = 44;
 
@@ -49,24 +44,8 @@ public class WaveFilter implements AudioFilter {
 	public WaveFilter(File aWaveFile, String aPath) {
 
 		waveFile = aWaveFile;
-		
 		writePath = aPath;
-		
 		writeFile = new File(writePath);
-
-		/*
-		 * try {
-		 * 
-		 * if (System.getProperty("os.name").toLowerCase().contains("windows"))
-		 * { fileSink = new
-		 * FileSink(System.getProperty("user.home")+"\\"+"convertedAudio.wav");
-		 * 
-		 * }else{ fileSink = new
-		 * FileSink(System.getProperty("user.home")+"/convertedAudio.wav"); }
-		 * 
-		 * } catch (FileNotFoundException e1) { // TODO Auto-generated catch
-		 * block e1.printStackTrace(); }
-		 */
 
 	}
 
@@ -77,7 +56,7 @@ public class WaveFilter implements AudioFilter {
 		FileSource fileSource;
 
 		if (isValid() && isWriteLocationGood()) {
-			
+
 			try {
 
 				fileSink = new FileSink(writePath);
@@ -102,9 +81,10 @@ public class WaveFilter implements AudioFilter {
 				// System.out.println(nombreShort);
 
 				// je trouver un diviseur du nombre de short
-				// Je sectionne mon fichier audio en petits arrays afin de le
+				// Je sectionne mon fichier audio en petits arrays afin de
+				// le
 				// traiter
-				int multiple = trouverMultiple(nombreShort);
+				int multiple = trouverDiviseur(nombreShort);
 
 				// nombre de fois que je dois traiter les petit arrays
 				int length = nombreShort / multiple;
@@ -114,7 +94,8 @@ public class WaveFilter implements AudioFilter {
 
 					int[] tabData = fileSource.popShort(multiple);
 
-					// Converti en 8 bits mon petit array et le push dans mon
+					// Converti en 8 bits mon petit array et le push dans
+					// mon
 					// fichier
 					fileSink.push(convertToEightBits2(tabData));
 					// fileSink.pushBytes();
@@ -156,7 +137,7 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
-	public void buildHeader(FileSource fileSource, FileSink fileSink) {
+	private void buildHeader(FileSource fileSource, FileSink fileSink) {
 
 		byte[] headerSource;
 		byte[] headerOut;
@@ -164,22 +145,22 @@ public class WaveFilter implements AudioFilter {
 		headerSource = fileSource.pop(44);
 		headerOut = new byte[44];
 
-		nombreDeBytesData = fileSource.available();
+		nombreDeBytesData = fileSource.available() / 2;
 
 		bitsPerSample = 8;
 		sampleRate = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 24, 28)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 		numOfChannels = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 22, 24)).order(ByteOrder.LITTLE_ENDIAN)
 				.getShort();
-
-		numSample = nombreDeBytesData / 4 / 1;
-		subChunk2Size = numSample * numOfChannels * bitsPerSample / 8;
-		chunkSize = 36 + subChunk2Size;
-		blockAlign = (short) (numOfChannels * bitsPerSample / 8);
-		byteRate = sampleRate * numOfChannels * bitsPerSample / 8;
 		subChunk1Size = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 16, 20)).order(ByteOrder.LITTLE_ENDIAN)
 				.getInt();
 		audioFormat = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 20, 22)).order(ByteOrder.LITTLE_ENDIAN)
 				.getShort();
+
+		numSample = nombreDeBytesData / 2 / 1;
+		subChunk2Size = numSample * numOfChannels * bitsPerSample / 8;
+		chunkSize = 36 + subChunk2Size;
+		blockAlign = (short) (numOfChannels * bitsPerSample / 8);
+		byteRate = sampleRate * numOfChannels * bitsPerSample / 8;
 
 		// ChunkID
 		ByteBuffer b = ByteBuffer.allocate(4);
@@ -254,9 +235,9 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
-	private int trouverMultiple(int aNumber) {
+	private int trouverDiviseur(int aNumber) {
 
-		int i = 9;
+		int i = 4;
 
 		while (aNumber % i != 0) {
 
@@ -447,37 +428,37 @@ public class WaveFilter implements AudioFilter {
 		return tabByte;
 
 	}
-	
-	private boolean isWriteLocationGood(){
-		
+
+	private boolean isWriteLocationGood() {
+
 		Scanner keyboard = new Scanner(System.in);
 		String ans = "";
 		boolean isGood = false;
-		
+
 		if (writeFile.exists()) {
-			
-			System.out.println("Le fichier destination "+writeFile.getAbsolutePath()+" exist");
+
+			System.out.println("Le fichier destination " + writeFile.getAbsolutePath() + " exist");
 			System.out.print("Voulez-vous l'écraser ? (y/n) : ");
 			ans = keyboard.next();
-			
+
 			if (ans.equalsIgnoreCase("y")) {
-				
+
 				isGood = true;
-				
-			}else{
-				
+
+			} else {
+
 				System.exit(0);
-				
-			}	
-			
-		}else{
-			
+
+			}
+
+		} else {
+
 			isGood = true;
-			
+
 		}
-		
+
 		return isGood;
-		
+
 	}
 
 }

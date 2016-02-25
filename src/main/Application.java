@@ -26,6 +26,7 @@ public class Application {
 			
 			WaveFilter waveFilter = new WaveFilter(waveFile,args[1]);
 			waveFilter.process();
+			waveFilter.printHeader();
 			
 			
 		}else {
