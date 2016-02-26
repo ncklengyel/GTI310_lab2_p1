@@ -237,10 +237,6 @@ public class WaveFilter implements AudioFilter {
 
 		fileSink.push(headerOut);
 
-		// for (int i = 0; i < headerOut.length; i++) {
-		// System.out.println(i+": "+headerOut[i]);
-		// }
-
 	}
 
 	private int trouverDiviseur(int aNumber) {
@@ -405,6 +401,9 @@ public class WaveFilter implements AudioFilter {
 						+ "seulement les fichiers wave 16bits par échantillon");
 				valid = false;
 
+			}else if (subChunk1Size != 16) {
+				System.out.println("Le fichier audio n'est pas encoder en PCM");
+				valid = false;
 			}
 
 		} catch (FileNotFoundException e) {
@@ -452,13 +451,9 @@ public class WaveFilter implements AudioFilter {
 			if (ans.equalsIgnoreCase("y")) {
 
 				isGood = true;
-
-			} else {
-
-				System.exit(0);
-
+				
 			}
-
+			
 		} else {
 
 			isGood = true;

@@ -26,13 +26,12 @@ public class Application {
 			
 			WaveFilter waveFilter = new WaveFilter(waveFile,args[1]);
 			waveFilter.process();
-			waveFilter.printHeader();
+			//waveFilter.printHeader();
 			
 			
 		}else {
 			
 			System.out.println("Le fichier "+args[0]+" n'a pas été trouver");
-			System.exit(0);
 			
 		}
 	
