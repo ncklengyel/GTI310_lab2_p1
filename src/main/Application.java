@@ -19,19 +19,28 @@ public class Application {
 			System.exit(0);
 		}
 		
-		File waveFile = new File(args[0]);
+		if (args[0].equals("--print-header")) {
+			
+			File waveFile = new File(args[1]);
+			WaveFilter waveFilter = new WaveFilter(waveFile, null);
+			waveFilter.printSourceHeader();
+			
+		}else{
+		
+			File waveFile = new File(args[0]);
 		
 		
-		if (waveFile.exists()) {
+		//Si le fichier reçu en paramètre existe
+			if (waveFile.exists()) {
 			
-			WaveFilter waveFilter = new WaveFilter(waveFile,args[1]);
-			waveFilter.process();
-			//waveFilter.printHeader();
+				WaveFilter waveFilter = new WaveFilter(waveFile,args[1]);
+				waveFilter.process();
 			
+			}else {
 			
-		}else {
+				System.out.println("Le fichier "+args[0]+" n'a pas été trouver");
 			
-			System.out.println("Le fichier "+args[0]+" n'a pas été trouver");
+			}
 			
 		}
 	
