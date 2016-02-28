@@ -322,7 +322,7 @@ public class WaveFilter implements AudioFilter {
 				System.out.println("ChunkSize2ID: " + chunkSize2ID);
 
 				byte[] subChunk2SizeArray = Arrays.copyOfRange(headerSource, 40, 44);
-				short subChunk2Size = ByteBuffer.wrap(subChunk2SizeArray).order(ByteOrder.LITTLE_ENDIAN).getShort();
+				int subChunk2Size = ByteBuffer.wrap(subChunk2SizeArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
 				System.out.println("SubChunk2Size: " + subChunk2Size);
 
 				fileSourceTemp.close();
