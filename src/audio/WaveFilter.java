@@ -37,7 +37,7 @@ public class WaveFilter implements AudioFilter {
 	private int sampleRate; // offset 24
 	private int byteRate; // offset 28
 	private short blockAlign; // offset 32
-	private short bitsPerSample; // offset 34
+	private short bitsPerSample = 8; // offset 34
 	private String subChunk2ID = "data"; // offset 36
 	private int subChunk2Size; // offset 40
 
@@ -52,7 +52,6 @@ public class WaveFilter implements AudioFilter {
 		// Initialisation des variables privées
 		waveFile = aWaveFile;
 		writePath = aPath;
-		//writeFile = new File(writePath);
 
 	}
 
@@ -124,26 +123,6 @@ public class WaveFilter implements AudioFilter {
 	}
 
 	/*
-	 * Méthode permettant d'afficher le header du fichier converti (La méthode
-	 * buildHeader doit etre executé avant afin d'avoir les bonnes valeurs)
-	 */
-	public void printHeader() {
-
-		System.out.println("PRIVATE VARS");
-		System.out.println("chunkSize: " + chunkSize);
-		System.out.println("subChunk1Size: " + subChunk1Size);
-		System.out.println("AudioFormat: " + audioFormat);
-		System.out.println("numOfChannels: " + numOfChannels);
-		System.out.println("sampleRate: " + sampleRate);
-		System.out.println("ByteRate: " + byteRate);
-		System.out.println("blockAlign: " + blockAlign);
-		System.out.println("bitsPerSample: " + bitsPerSample);
-		System.out.println("subChunk2Size: " + subChunk2Size);
-		System.out.println("END\n");
-
-	}
-
-	/*
 	 * Méthode permttant de build mon header du fichier à convertir
 	 */
 	private void buildHeader(FileSource fileSource, FileSink fileSink) {
@@ -156,7 +135,6 @@ public class WaveFilter implements AudioFilter {
 
 		nombreDeBytesData = fileSource.available() / 2;
 
-		bitsPerSample = 8;
 		sampleRate = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 24, 28)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 		numOfChannels = ByteBuffer.wrap(Arrays.copyOfRange(headerSource, 22, 24)).order(ByteOrder.LITTLE_ENDIAN)
 				.getShort();
