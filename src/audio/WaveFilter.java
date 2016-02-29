@@ -233,6 +233,9 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
+	/*
+	 * méthode privée qui copie un tableau dans une autre tableau à l’aide de borne.
+	 */
 	private void insertInArray(byte[] tabDestination, byte[] tabSource, int borneInf, int bornSup) {
 
 		int count = 0;
@@ -243,6 +246,9 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
+	/*
+	 * Méthode qui print le header du fichier en parametre (Utilisation: java -jar programme.jar --print-header fichier)
+	 */
 	public void printSourceHeader() {
 
 		System.out.println("--HEADER OF " + waveFile.getName() + " ---");
