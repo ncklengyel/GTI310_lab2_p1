@@ -19,10 +19,15 @@ public class Application {
 			System.exit(0);
 		}
 		
+		/*
+		 * Si l'argument 1 est egale a --print-header
+		 */
 		if (args[0].equals("--print-header")) {
 			
 			File waveFile = new File(args[1]);
 			WaveFilter waveFilter = new WaveFilter(waveFile, null);
+			
+			//Afficher de header du fichier passé en 2e paramètre
 			waveFilter.printSourceHeader();
 			
 		}else{
@@ -34,6 +39,7 @@ public class Application {
 			if (waveFile.exists()) {
 			
 				WaveFilter waveFilter = new WaveFilter(waveFile,args[1]);
+				//Lance la conversion
 				waveFilter.process();
 			
 			}else {
