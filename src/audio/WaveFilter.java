@@ -68,7 +68,7 @@ public class WaveFilter implements AudioFilter {
 		
 		// Si mon fichier entré en paramètre est valide et que
 		// l'emplacement ou écrire le fichier converti est ok
-		if (isValid() && isWriteLocationGood()) {
+		if (isValid(waveFile) && isWriteLocationGood(writeFile)) {
 
 			try {
 
@@ -218,6 +218,7 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
+	//methode qui determine le plus petit diviseur plus grand ou égale à 4 d'un nombre
 	private int trouverDiviseur(int aNumber) {
 
 		int i = 4;
@@ -311,14 +312,17 @@ public class WaveFilter implements AudioFilter {
 
 	}
 
-	private boolean isValid() {
+	/*
+	 * Méthode qui retourne si le fichier passer en paramètre est valid pour la conversion
+	 */
+	private boolean isValid(File file) {
 
 		boolean valid = true;
 
 		try {
 
 			// Création d'un fileSource
-			FileSource fileSourceTemp = new FileSource(waveFile.getAbsolutePath());
+			FileSource fileSourceTemp = new FileSource(file.getAbsolutePath());
 
 			// Je met dans un variable le file size total du fichier
 			int fileSize = fileSourceTemp.available();
@@ -405,7 +409,7 @@ public class WaveFilter implements AudioFilter {
 	/*
 	 * Méthode qui vérifie si la destination de création du fichier converti
 	 */
-	private boolean isWriteLocationGood() {
+	private boolean isWriteLocationGood(File writeFile) {
 
 		Scanner keyboard = new Scanner(System.in);
 		String ans = "";
